@@ -1,7 +1,11 @@
 package main
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
+	"os"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -20,10 +24,15 @@ func handler(event events.CognitoEventUserPoolsPreAuthentication) (events.Cognit
 		}))
 
 		cognitoClient := cognitoidentityprovider.New(awsSession)
+		clientID := os.Getenv("CLIENT_ID")
+		clientSecret := os.Getenv("CLIENT_SECRET")
+
+		secretHash := createSecretHash(event.UserName, clientID, clientSecret)
 
 		params := &cognitoidentityprovider.ResendConfirmationCodeInput{
-			ClientId: aws.String(event.CallerContext.ClientID),
-			Username: aws.String(event.UserName),
+			ClientId:   aws.String(clientID),
+			Username:   aws.String(event.UserName),
+			SecretHash: aws.String(secretHash),
 		}
 
 		_, err := cognitoClient.ResendConfirmationCode(params)
@@ -38,6 +47,12 @@ func handler(event events.CognitoEventUserPoolsPreAuthentication) (events.Cognit
 	}
 
 	return event, nil
+}
+
+func createSecretHash(username, clientID, clientSecret string) string {
+	mac := hmac.New(sha256.New, []byte(clientSecret))
+	mac.Write([]byte(username + clientID))
+	return base64.StdEncoding.EncodeToString(mac.Sum(nil))
 }
 
 func main() {
