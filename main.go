@@ -112,6 +112,7 @@ func handler(event events.CognitoEventUserPoolsPreAuthentication) (events.Cognit
 			return event, accountVerificationError()
 		} else {
 			fmt.Println("Preventing resend confirmation for user", event.UserName)
+			return event, accountVerificationError()
 		}
 	}
 
