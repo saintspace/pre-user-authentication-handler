@@ -42,8 +42,6 @@ func handler(event events.CognitoEventUserPoolsPreAuthentication) (events.Cognit
 		}
 		fmt.Println("Verification email resent. Please check your email and verify your account before signing in.")
 		return event, fmt.Errorf("--- Looks like you haven't verified your email yet. Please check your email and verify your account before signing in.")
-	} else {
-		fmt.Println("User email already verified. Sign in successful.")
 	}
 
 	return event, nil
